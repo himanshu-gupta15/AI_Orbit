@@ -1,0 +1,88 @@
+// Prisma schema file for AI Orbit Tools Module
+// Database: PostgreSQL on Neon
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String           @id @default(uuid())
+  name         String
+  email        String           @unique
+  passwordHash String
+  avatarUrl    String?
+  role         String           @default("user") // "user" | "admin"
+  favorites    Favorite[]
+  submissions  ToolSubmission[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([email])
+}
+
+model Tool {
+  id              String     @id @default(uuid())
+  name            String     @unique
+  slug            String     @unique
+  tagline         String?
+  description     String     @db.Text
+  longDescription String     @db.Text
+  logoUrl         String
+  websiteUrl      String
+  category        String
+  pricing         String     // Free, Freemium, Paid
+  rating          Float      @default(4.5)
+  reviewCount     Int        @default(0)
+  platforms       String     @db.Text // JSON string array e.g. ["Web", "macOS", "Windows"]
+  features        String     @db.Text // JSON string array
+  useCases        String     @db.Text // JSON string array
+  tags            String     @db.Text // JSON string array
+  pricingPlans    String     @db.Text // JSON string array
+  isFeatured      Boolean    @default(false)
+  isVerified      Boolean    @default(true)
+  favorites       Favorite[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([pricing])
+  @@index([rating])
+  @@index([isFeatured])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  toolId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, toolId])
+  @@index([userId])
+  @@index([toolId])
+}
+
+model ToolSubmission {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  websiteUrl  String
+  description String   @db.Text
+  category    String
+  pricing     String
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
