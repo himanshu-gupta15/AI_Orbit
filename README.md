@@ -165,18 +165,9 @@ cd AI_Orbit
 ```
 
 ### 3. Configure Environment Variables
-Copy `.env.example` to `.env` and provide your PostgreSQL connection strings:
-```bash
-cp .env.example .env
-```
 
-Ensure your `.env` contains:
-```env
-DATABASE_URL="postgresql://<user>:<password>@<neon-pooler-host>/<dbname>?sslmode=require&channel_binding=require"
-DIRECT_URL="postgresql://<user>:<password>@<neon-host>/<dbname>?sslmode=require"
-JWT_SECRET="your-secure-random-jwt-secret-min-32-chars"
-NEXT_PUBLIC_APP_URL="http://localhost:3001"
-```
+
+
 
 ### 4. Install Dependencies
 ```bash
