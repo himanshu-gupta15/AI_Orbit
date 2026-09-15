@@ -1,6 +1,7 @@
 import { userRepository, UserRepository } from "@/repositories/user.repository";
 import { SignupInput, LoginInput } from "@/lib/validations/auth.validation";
 import { hashPassword, comparePassword, signToken, SafeUser } from "@/lib/auth";
+import { activityService } from "./activity.service";
 
 export class AuthService {
   constructor(private userRepo: UserRepository = userRepository) {}
@@ -36,6 +37,13 @@ export class AuthService {
       role: user.role,
     });
 
+    // Asynchronously log signup activity
+    activityService.logActivity({
+      userId: user.id,
+      action: "USER_SIGNUP",
+      metadata: { name: user.name, email: user.email },
+    });
+
     return { user: safeUser, token };
   }
 
@@ -64,6 +72,13 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       role: user.role,
+    });
+
+    // Asynchronously log login activity
+    activityService.logActivity({
+      userId: user.id,
+      action: "USER_LOGIN",
+      metadata: { email: user.email },
     });
 
     return { user: safeUser, token };

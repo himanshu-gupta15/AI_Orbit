@@ -11,6 +11,7 @@ import EmptyState from "@/components/tools/EmptyState";
 import ErrorState from "@/components/tools/ErrorState";
 import SubmitToolModal from "@/components/tools/SubmitToolModal";
 import { Sparkles, Layers } from "lucide-react";
+import { trackActivity } from "@/lib/tracker";
 
 export default function ToolsClient() {
   const searchParams = useSearchParams();
@@ -164,7 +165,21 @@ export default function ToolsClient() {
 
   useEffect(() => {
     fetchTools();
-  }, [fetchTools]);
+    if (search.trim() || category !== "All" || pricing !== "All" || platform !== "All") {
+      const timer = setTimeout(() => {
+        trackActivity("SEARCH_TOOLS", {
+          metadata: {
+            search: search.trim() || undefined,
+            category: category !== "All" ? category : undefined,
+            pricing: pricing !== "All" ? pricing : undefined,
+            platform: platform !== "All" ? platform : undefined,
+            sort,
+          },
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchTools, search, category, pricing, platform, sort]);
 
   // Handlers
   const handleSearchChange = (val: string) => {

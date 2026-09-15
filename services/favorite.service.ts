@@ -2,6 +2,8 @@ import { favoriteRepository } from "../repositories/favorite.repository";
 import { toolRepository } from "../repositories/tool.repository";
 import { toolService } from "./tool.service";
 
+import { activityService } from "./activity.service";
+
 export class FavoriteService {
   async addFavorite(userId: string, toolId: string) {
     // Verify tool exists
@@ -17,6 +19,15 @@ export class FavoriteService {
     }
 
     await favoriteRepository.create(userId, toolId);
+
+    // Asynchronously log activity
+    activityService.logActivity({
+      userId,
+      toolId,
+      action: "FAVORITE_TOOL",
+      metadata: { toolName: tool.name, slug: tool.slug, category: tool.category },
+    });
+
     return { favorited: true, message: "Tool saved to favorites" };
   }
 
@@ -27,6 +38,14 @@ export class FavoriteService {
     }
 
     await favoriteRepository.delete(userId, toolId);
+
+    // Asynchronously log activity
+    activityService.logActivity({
+      userId,
+      toolId,
+      action: "UNFAVORITE_TOOL",
+    });
+
     return { favorited: false, message: "Tool removed from favorites" };
   }
 

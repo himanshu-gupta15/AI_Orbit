@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { Share2, Bookmark, Check, ExternalLink, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
+import { trackActivity } from "@/lib/tracker";
+
 interface InteractiveActionsProps {
   toolId?: string;
   toolName: string;
@@ -26,6 +28,16 @@ export default function InteractiveActions({
   const [bookmarked, setBookmarked] = useState(initialFavorited);
   const [saving, setSaving] = useState(false);
 
+  // Track VIEW_TOOL activity on mount
+  useEffect(() => {
+    if (toolId) {
+      trackActivity("VIEW_TOOL", {
+        toolId,
+        metadata: { toolName, path: pathname },
+      });
+    }
+  }, [toolId, toolName, pathname]);
+
   // If user is logged in and toolId is provided, check favorite status from server
   useEffect(() => {
     if (user && toolId) {
@@ -40,12 +52,27 @@ export default function InteractiveActions({
     }
   }, [user, toolId]);
 
+  const handleVisitWebsite = () => {
+    if (toolId) {
+      trackActivity("VISIT_WEBSITE", {
+        toolId,
+        metadata: { toolName, websiteUrl },
+      });
+    }
+  };
+
   const handleShare = async () => {
     try {
       if (typeof window !== "undefined") {
         await navigator.clipboard.writeText(window.location.href);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        if (toolId) {
+          trackActivity("SHARE_TOOL", {
+            toolId,
+            metadata: { toolName },
+          });
+        }
       }
     } catch (e) {
       console.error("Could not copy URL:", e);
@@ -87,6 +114,7 @@ export default function InteractiveActions({
           href={websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleVisitWebsite}
           className="flex-1 sm:flex-none inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6E56CF] px-5 text-xs font-semibold text-white transition-all duration-200 hover:brightness-110 active:scale-95 shadow-md shadow-[#6E56CF]/20"
         >
           <span>Visit Website</span>

@@ -20,6 +20,7 @@ model User {
   role         String           @default("user") // "user" | "admin"
   favorites    Favorite[]
   submissions  ToolSubmission[]
+  activities   Activity[]
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
@@ -47,6 +48,7 @@ model Tool {
   isFeatured      Boolean    @default(false)
   isVerified      Boolean    @default(true)
   favorites       Favorite[]
+  activities      Activity[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -85,4 +87,22 @@ model ToolSubmission {
 
   @@index([userId])
   @@index([status])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String?
+  toolId    String?
+  action    String   // "USER_SIGNUP", "USER_LOGIN", "VIEW_TOOL", "SEARCH_TOOLS", "FAVORITE_TOOL", "UNFAVORITE_TOOL", "SUBMIT_TOOL", "VISIT_WEBSITE"
+  metadata  String?  @db.Text // JSON string for extra details (query terms, category, filters, etc.)
+  ipAddress String?
+  userAgent String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tool      Tool?    @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([toolId])
+  @@index([action])
+  @@index([createdAt])
 }
